@@ -1,0 +1,39 @@
+# openssl encrypt & decrypt
+# TODO: pass pwd from command line
+usage(){
+    echo "Usage: $0 {aes-e|aes-d}"
+}
+
+aes_encrypt(){
+    [[ $# -eq 0 ]] && return 1
+    read -p "password: " -s _passwd
+    for file in $*; do
+        _args="-k $_passwd -in ${file} -out ${file}.aes"
+        openssl enc -aes-128-ecb -e $_args
+    done
+}
+
+aes_decrypt(){
+    [[ $# -eq 0 ]] && return 1
+    read -p "password: " -s _passwd
+    for file in $*; do
+        _args="-k $_passwd -in ${file} -out `basename ${file} .aes`"
+        openssl enc -aes-128-ecb -d $_args
+    done
+}
+
+clean_file(){
+    [[ $# -eq 0 ]] && return 1
+    for file in $*; do
+        rm $file
+    done
+}
+
+[[ $# -eq 0 ]] && usage && exit 0
+
+cmd=$1 && shift 1
+case $cmd in
+  -e) aes_encrypt $* && clean_file $*;;
+  -d) aes_decrypt $* && clean_file $*;;
+  *) usage;;
+esac
